@@ -1,0 +1,11 @@
+{
+  "functions": {
+    "api/*.js": {
+      "runtime": "@vercel/node"
+    }
+  },
+  "routes": [
+    { "src": "/api/process-document", "dest": "/api/process-document.js" },
+    { "src": "/health", "dest": "/api/health.js" }
+  ]
+}

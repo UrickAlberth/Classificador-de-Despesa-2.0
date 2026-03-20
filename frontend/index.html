@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Classificador de Despesa com IA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="background-orb orb-a"></div>
+    <div class="background-orb orb-b"></div>
+
+    <header class="hero container">
+      <p class="eyebrow">IA + OCR + Classificacao Orcamentaria</p>
+      <h1>Classificador de Despesa</h1>
+      <p class="subtitle">
+        Envie CI, Pedido SIAD, ETP, TR ou Contrato. O sistema extrai todos os itens
+        com OCR e compara com a Tabela 8 pela interpretacao.
+      </p>
+    </header>
+
+    <main class="container layout">
+      <section class="panel form-panel">
+        <h2>Processar Documento</h2>
+
+        <form id="processForm">
+          <label for="apiUrl">Endpoint da API</label>
+          <input
+            id="apiUrl"
+            name="apiUrl"
+            type="text"
+            value="http://localhost:3000/api/process-document"
+            required
+          />
+
+          <label for="documentType">Tipo do documento</label>
+          <select id="documentType" name="documentType">
+            <option value="">Nao informado</option>
+            <option value="CI">Comunicacao Interna (CI)</option>
+            <option value="Pedido SIAD">Pedido SIAD</option>
+            <option value="ETP">Estudo Tecnico Preliminar (ETP)</option>
+            <option value="TR">Termo de Referencia (TR)</option>
+            <option value="Contrato">Contrato</option>
+          </select>
+
+          <label for="document">Arquivo</label>
+          <input
+            id="document"
+            name="document"
+            type="file"
+            accept=".pdf,.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp"
+            required
+          />
+
+          <button id="submitButton" type="submit">Processar com IA</button>
+        </form>
+
+        <div id="status" class="status" aria-live="polite"></div>
+      </section>
+
+      <section class="panel results-panel">
+        <div class="results-header">
+          <h2>Resultado</h2>
+          <button id="copyJsonButton" type="button" class="ghost" disabled>
+            Copiar JSON
+          </button>
+        </div>
+
+        <div id="summary" class="summary hidden"></div>
+        <div id="resultsList" class="results-list"></div>
+
+        <pre id="rawJson" class="raw-json hidden"></pre>
+      </section>
+    </main>
+
+    <template id="itemTemplate">
+      <article class="item-card">
+        <div class="item-top">
+          <span class="item-index"></span>
+          <span class="pill">Itens encontrados</span>
+        </div>
+        <h3 class="item-title"></h3>
+        <p class="item-justification"></p>
+        <div class="matches"></div>
+      </article>
+    </template>
+
+    <template id="matchTemplate">
+      <div class="match-row">
+        <div>
+          <p class="match-name"></p>
+          <p class="match-id"></p>
+        </div>
+        <div class="match-score"></div>
+      </div>
+    </template>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "classificador-despesa-ia",
+  "version": "1.0.0",
+  "description": "Pipeline de OCR + GPT + classificacao de itens de despesa com base na Tabela 8.",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}
