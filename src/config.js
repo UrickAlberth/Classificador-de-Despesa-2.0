@@ -13,6 +13,7 @@ function required(name) {
 export const config = {
   port: Number(process.env.PORT || 3000),
   dbPath: process.env.DB_PATH || "./DadosTabelas.db",
+  catmasDbPath: process.env.CATMAS_DB_PATH || "./catma.db",
   table8: {
     tableName: process.env.TABLE8_NAME || "elemento_item_despesa",
     idColumn: process.env.TABLE8_ID_COLUMN || "cd_elemento_item",

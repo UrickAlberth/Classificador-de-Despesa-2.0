@@ -4,10 +4,10 @@ import path from "node:path";
 import { config } from "./config.js";
 import { safeJsonParse } from "./utils.js";
 
-function resolveDbPath() {
-  const sourcePath = path.isAbsolute(config.dbPath)
-    ? config.dbPath
-    : path.join(process.cwd(), config.dbPath);
+function resolveDbPath(dbPath) {
+  const sourcePath = path.isAbsolute(dbPath)
+    ? dbPath
+    : path.join(process.cwd(), dbPath);
 
   // Em funcoes serverless da Vercel, /var/task e somente leitura.
   if (process.env.VERCEL === "1") {
@@ -21,7 +21,10 @@ function resolveDbPath() {
   return sourcePath;
 }
 
-const db = new Database(resolveDbPath());
+// Conexao principal: Tabela 8 + cache de embeddings
+const db = new Database(resolveDbPath(config.dbPath));
+// Conexao CATMAS: banco separado com materiais e servicos
+const catmasDb = new Database(resolveDbPath(config.catmasDbPath));
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS embedding_cache (
@@ -57,10 +60,19 @@ function resolveColumnName(columnsMap, preferredName) {
 }
 
 function tableExists(tableName) {
-  const row = db
+  const row = catmasDb
     .prepare("SELECT name FROM sqlite_master WHERE type='table' AND LOWER(name) = LOWER(?)")
     .get(tableName);
   return Boolean(row);
+}
+
+function getCatmasColumnsMap(tableName) {
+  const rows = catmasDb.prepare(`PRAGMA table_info(${quotedIdentifier(tableName)})`).all();
+  const map = new Map();
+  for (const row of rows) {
+    map.set(String(row.name).toLowerCase(), row.name);
+  }
+  return map;
 }
 
 let catmasSchemaValidated = false;
@@ -84,7 +96,7 @@ export function validateCatmasSchema() {
       throw new Error(`Tabela CATMAS inexistente no banco: ${tableName}`);
     }
 
-    const columnsMap = getColumnsMap(tableName);
+    const columnsMap = getCatmasColumnsMap(tableName);
     for (const [envName, colName] of requiredLogicalFields) {
       if (!resolveColumnName(columnsMap, colName)) {
         throw new Error(
@@ -117,7 +129,7 @@ export function getCatmasRowsByTable8(table8Id) {
   const allRows = [];
 
   for (const tableName of config.catmas.tables) {
-    const columnsMap = getColumnsMap(tableName);
+    const columnsMap = getCatmasColumnsMap(tableName);
 
     const idCol = resolveColumnName(columnsMap, config.catmas.idColumn);
     const codeCol = resolveColumnName(columnsMap, config.catmas.codeColumn);
@@ -160,7 +172,7 @@ export function getCatmasRowsByTable8(table8Id) {
       LIMIT ${Number.isFinite(config.catmas.maxRowsPerLookup) ? config.catmas.maxRowsPerLookup : 400}
     `;
 
-    const rows = db.prepare(sql).all(...params).map((row) => ({
+    const rows = catmasDb.prepare(sql).all(...params).map((row) => ({
       ...row,
       supplyLine:
         row.supplySubLine && String(row.supplySubLine).trim().length > 0
@@ -197,4 +209,5 @@ export function saveCachedEmbedding(scope, rowId, embedding) {
 
 export function closeDb() {
   db.close();
+  catmasDb.close();
 }
