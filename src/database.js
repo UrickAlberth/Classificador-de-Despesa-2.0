@@ -1,24 +1,43 @@
 import Database from "better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { config } from "./config.js";
 import { safeJsonParse } from "./utils.js";
 
-function resolveDbPath(dbPath) {
-  const sourcePath = path.isAbsolute(dbPath)
-    ? dbPath
-    : path.join(process.cwd(), dbPath);
+// Diretorio deste arquivo (src/), independente de onde o processo foi iniciado
+const __fileDir = path.dirname(fileURLToPath(import.meta.url));
 
-  // Em funcoes serverless da Vercel, /var/task e somente leitura.
-  if (process.env.VERCEL === "1") {
-    const targetPath = path.join("/tmp", path.basename(sourcePath));
-    if (!fs.existsSync(targetPath)) {
-      fs.copyFileSync(sourcePath, targetPath);
-    }
-    return targetPath;
+function resolveDbPath(dbPath) {
+  if (path.isAbsolute(dbPath)) {
+    return copyToTmpIfVercel(dbPath);
   }
 
-  return sourcePath;
+  // Tenta encontrar o arquivo em varias localizacoes possiveis
+  const candidates = [
+    path.resolve(__fileDir, "..", dbPath), // /var/task/arquivo.db  (src/ -> raiz)
+    path.join(process.cwd(), dbPath),      // /var/task/arquivo.db  (cwd = raiz)
+    path.resolve(__fileDir, dbPath),       // /var/task/src/arquivo.db (fallback)
+  ];
+
+  const found = candidates.find((p) => fs.existsSync(p));
+  if (!found) {
+    throw new Error(
+      `Banco de dados nao encontrado: '${dbPath}'.\nLocais verificados:\n` +
+        candidates.map((p) => `  - ${p}`).join("\n")
+    );
+  }
+
+  return copyToTmpIfVercel(found);
+}
+
+function copyToTmpIfVercel(sourcePath) {
+  if (process.env.VERCEL !== "1") return sourcePath;
+  const targetPath = path.join("/tmp", path.basename(sourcePath));
+  if (!fs.existsSync(targetPath)) {
+    fs.copyFileSync(sourcePath, targetPath);
+  }
+  return targetPath;
 }
 
 // Conexao principal: Tabela 8 + cache de embeddings
