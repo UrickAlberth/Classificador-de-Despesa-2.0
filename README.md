@@ -1,6 +1,6 @@
 # Classificador de Despesa com IA
 
-Sistema para importar documentos administrativos (CI, Pedido SIAD, ETP, TR e Contratos), extrair todos os itens com OCR e IA, e classificar cada item pela Tabela 8 com foco no campo de interpretacao.
+Sistema para importar documentos administrativos (CI, Pedido SIAD, ETP, TR e Contratos), extrair todos os itens com OCR e IA, e classificar cada item com cruzamento obrigatorio entre Tabela 8 e CATMAS/SIAD.
 
 ## Arquitetura
 
@@ -8,7 +8,8 @@ Sistema para importar documentos administrativos (CI, Pedido SIAD, ETP, TR e Con
 2. OCR com `mistral-document-ai-2512`.
 3. Extracao de todos os itens de despesa com Azure OpenAI `gpt-4.1-mini`.
 4. Busca semantica na Tabela 8 do SQLite usando embeddings de `interpretacao`.
-5. Retorno com lista de itens e melhores correspondencias.
+5. Cruzamento obrigatorio com CATMAS/SIAD, incluindo linha de fornecimento e situacao do item (Ativo/Suspenso).
+6. Retorno com lista de itens e melhores correspondencias.
 
 ## Requisitos
 
@@ -38,7 +39,23 @@ AZURE_OCR_MODEL=mistral-document-ai-2512
 
 Observacao: o codigo ainda aceita variaveis antigas (`AZURE_OPENAI_API_KEY` e `MISTRAL_*`) para compatibilidade.
 
-3. Ajuste `TABLE8_*` caso sua Tabela 8 tenha nome/colunas diferentes.
+4. Ajuste `TABLE8_*` caso sua Tabela 8 tenha nome/colunas diferentes.
+5. Configure o CATMAS/SIAD no `.env` (`CATMAS_*`).
+
+Exemplo validado para `catma.db` (schema real):
+
+```dotenv
+CATMAS_TABLES=materiais,servicos
+CATMAS_ID_COLUMN=id
+CATMAS_CODE_COLUMN=codigo
+CATMAS_DESCRIPTION_COLUMN=descricao
+CATMAS_DETAILED_DESCRIPTION_COLUMN=descricao_item
+CATMAS_STATUS_COLUMN=situacao
+CATMAS_SUPPLY_LINE_COLUMN=grupo
+CATMAS_SUPPLY_SUBLINE_COLUMN=classe
+CATMAS_TABLE8_LINK_COLUMN=natureza
+CATMAS_ACTIVE_ONLY=true
+```
 
 ## Executar
 
@@ -112,4 +129,6 @@ Resposta (resumo):
 
 - O sistema lista todos os itens detectados no documento (nao apenas um).
 - A comparacao principal e feita sobre `interpretacao` da Tabela 8.
-- Se quiser melhorar desempenho, mantenha o cache de embeddings (tabela `table8_embedding_cache`) no mesmo banco.
+- O cruzamento com CATMAS/SIAD e obrigatorio na resposta do classificador.
+- O backend valida automaticamente o schema CATMAS configurado e interrompe com erro claro se houver coluna/tabela invalida.
+- O cache de embeddings usa a tabela `embedding_cache` no mesmo banco.

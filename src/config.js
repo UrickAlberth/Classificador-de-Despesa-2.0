@@ -19,6 +19,23 @@ export const config = {
     nameColumn: process.env.TABLE8_NAME_COLUMN || "denominacao_item_despesa",
     interpretationColumn: process.env.TABLE8_INTERPRETATION_COLUMN || "interpretacao"
   },
+  catmas: {
+    tables: (process.env.CATMAS_TABLES || "materiais,servicos")
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean),
+    idColumn: process.env.CATMAS_ID_COLUMN || "id",
+    codeColumn: process.env.CATMAS_CODE_COLUMN || "codigo",
+    descriptionColumn: process.env.CATMAS_DESCRIPTION_COLUMN || "descricao",
+    detailedDescriptionColumn:
+      process.env.CATMAS_DETAILED_DESCRIPTION_COLUMN || "descricao_item",
+    statusColumn: process.env.CATMAS_STATUS_COLUMN || "situacao",
+    supplyLineColumn: process.env.CATMAS_SUPPLY_LINE_COLUMN || "grupo",
+    supplySubLineColumn: process.env.CATMAS_SUPPLY_SUBLINE_COLUMN || "classe",
+    table8LinkColumn: process.env.CATMAS_TABLE8_LINK_COLUMN || "natureza",
+    activeOnly: String(process.env.CATMAS_ACTIVE_ONLY || "true").toLowerCase() !== "false",
+    maxRowsPerLookup: Number(process.env.CATMAS_MAX_ROWS_PER_LOOKUP || 400)
+  },
   azure: {
     endpoint: process.env.AZURE_ENDPOINT || process.env.AZURE_OPENAI_ENDPOINT,
     apiKey: process.env.AZURE_API_KEY || process.env.AZURE_OPENAI_API_KEY,
