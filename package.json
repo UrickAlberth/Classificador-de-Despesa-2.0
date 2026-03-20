@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node --watch src/server.js"
+    "dev": "node --watch src/server.js",
+    "vercel-build": "cp DadosTabelas.db api/DadosTabelas.db && cp catma.db api/catma.db"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1",

@@ -14,10 +14,12 @@ function resolveDbPath(dbPath) {
   }
 
   // Tenta encontrar o arquivo em varias localizacoes possiveis
+  const basename = path.basename(dbPath);
   const candidates = [
-    path.resolve(__fileDir, "..", dbPath), // /var/task/arquivo.db  (src/ -> raiz)
-    path.join(process.cwd(), dbPath),      // /var/task/arquivo.db  (cwd = raiz)
-    path.resolve(__fileDir, dbPath),       // /var/task/src/arquivo.db (fallback)
+    path.resolve(__fileDir, "..", basename),         // /var/task/arquivo.db  (src/ -> raiz)
+    path.join(process.cwd(), dbPath),                // /var/task/arquivo.db  (cwd = raiz)
+    path.resolve(__fileDir, "..", "api", basename),  // /var/task/api/arquivo.db (vercel-build copy)
+    path.resolve(__fileDir, dbPath),                 // /var/task/src/arquivo.db (fallback)
   ];
 
   const found = candidates.find((p) => fs.existsSync(p));

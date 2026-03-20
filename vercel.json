@@ -1,9 +1,13 @@
 {
-  "functions": {
-    "api/*.js": {
-      "includeFiles": "**/*.db"
+  "builds": [
+    {
+      "src": "api/*.js",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["DadosTabelas.db", "catma.db"]
+      }
     }
-  },
+  ],
   "routes": [
     { "src": "/api/process-document", "dest": "/api/process-document.js" },
     { "src": "/health", "dest": "/api/health.js" }
