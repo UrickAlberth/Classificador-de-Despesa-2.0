@@ -23,5 +23,4 @@ Thumbs.db
 # Legacy/generated files not required for app deploy
 output.sql
 banco_relacional.sql
-catma.db
 auxiliares/
