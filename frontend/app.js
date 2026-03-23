@@ -11,6 +11,50 @@ const matchTemplate = document.getElementById("matchTemplate");
 
 let latestResponse = null;
 
+async function parseApiResponse(response) {
+  const contentType = String(response.headers.get("content-type") || "").toLowerCase();
+
+  if (contentType.includes("application/json")) {
+    try {
+      return {
+        payload: await response.json(),
+        rawText: ""
+      };
+    } catch {
+      // Continua para fallback de texto abaixo.
+    }
+  }
+
+  const rawText = await response.text();
+
+  try {
+    return {
+      payload: JSON.parse(rawText),
+      rawText
+    };
+  } catch {
+    return {
+      payload: null,
+      rawText
+    };
+  }
+}
+
+function buildNonJsonResponseMessage(apiUrl, response, rawText) {
+  const condensed = String(rawText || "").replace(/\s+/g, " ").trim();
+  const sample = condensed.slice(0, 140);
+  const looksLikeHtml =
+    condensed.includes("<html") ||
+    condensed.includes("<!doctype") ||
+    condensed.toLowerCase().includes("the page could not be found");
+
+  if (looksLikeHtml) {
+    return `O endpoint retornou uma pagina HTML (HTTP ${response.status}) em vez de JSON. Verifique se a URL esta correta e termina com /api/process-document. URL atual: ${apiUrl}`;
+  }
+
+  return `A resposta da API nao veio em JSON (HTTP ${response.status}). Trecho retornado: ${sample || "(vazio)"}`;
+}
+
 const savedApiUrl = localStorage.getItem("classificador.apiUrl");
 if (savedApiUrl) {
   form.apiUrl.value = savedApiUrl;
@@ -27,7 +71,11 @@ async function bootstrapApiUrl() {
       return;
     }
 
-    const payload = await response.json();
+    const { payload } = await parseApiResponse(response);
+    if (!payload) {
+      return;
+    }
+
     const backendApiUrl = String(payload?.backendApiUrl || "").trim();
 
     if (backendApiUrl) {
@@ -126,6 +174,10 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
+  if (!/\/api\/process-document\/?(\?.*)?$/i.test(apiUrl)) {
+    setStatus("Dica: normalmente a URL deve terminar com /api/process-document.");
+  }
+
   if (!file) {
     setStatus("Selecione um arquivo para processar.", true);
     return;
@@ -148,10 +200,18 @@ form.addEventListener("submit", async (event) => {
       body: formData
     });
 
-    const payload = await response.json();
+    const { payload, rawText } = await parseApiResponse(response);
 
     if (!response.ok) {
-      throw new Error(payload?.details || payload?.error || "Falha na API.");
+      throw new Error(
+        payload?.details ||
+          payload?.error ||
+          buildNonJsonResponseMessage(apiUrl, response, rawText)
+      );
+    }
+
+    if (!payload) {
+      throw new Error(buildNonJsonResponseMessage(apiUrl, response, rawText));
     }
 
     renderResults(payload);
