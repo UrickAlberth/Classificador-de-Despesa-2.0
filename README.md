@@ -15,7 +15,7 @@ Sistema para importar documentos administrativos (CI, Pedido SIAD, ETP, TR e Con
 
 - Node.js 18+
 - Chave Azure OpenAI
-- Endpoint e chave Azure API (os mesmos podem ser usados para GPT e OCR)
+- Chave Mistral API para OCR
 - Banco SQLite com os dados transformados das planilhas
 
 ## Configuracao
@@ -27,18 +27,15 @@ npm install
 ```
 
 2. Copie `.env.example` para `.env` e preencha as chaves.
-3. Para OCR Mistral no Azure, use:
+3. Para OCR com a API direta da Mistral, use:
 
 ```dotenv
-AZURE_ENDPOINT=https://SEU-RECURSO.azure.com
-AZURE_OCR_AUTH_MODE=api-key
-AZURE_OCR_MODEL=mistral-document-ai-2512
-AZURE_OCR_API_VERSION=2024-12-01-preview
-# MISTRAL_API_KEY opcional: se nao informar, usa AZURE_API_KEY
-# AZURE_OCR_BASE_URL opcional: se nao informar, usa AZURE_ENDPOINT
+MISTRAL_API_KEY=sua-chave-mistral
+MISTRAL_DOCUMENT_MODEL=mistral-document-ai-2512
+MISTRAL_OCR_ENDPOINT=https://api.mistral.ai/v1/ocr
 ```
 
-Observacao: o codigo ainda aceita variaveis antigas (`AZURE_OPENAI_API_KEY` e `MISTRAL_*`) para compatibilidade.
+Observacao: o OCR agora usa diretamente a API da Mistral. A configuracao Azure permanece apenas para chat e embeddings.
 
 4. Ajuste `TABLE8_*` caso sua Tabela 8 tenha nome/colunas diferentes.
 5. Configure o CATMAS/SIAD no `.env` (`CATMAS_*`).

@@ -45,16 +45,9 @@ export const config = {
     embeddingDeployment: required("AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
   },
   mistral: {
-    apiKey: process.env.MISTRAL_API_KEY || process.env.AZURE_API_KEY || process.env.AZURE_OPENAI_API_KEY,
-    authMode: process.env.AZURE_OCR_AUTH_MODE || process.env.MISTRAL_AUTH_MODE || "bearer",
-    apiVersion: process.env.AZURE_OCR_API_VERSION || process.env.AZURE_OPENAI_API_VERSION || "2024-12-01-preview",
-    baseUrl:
-      process.env.AZURE_OCR_BASE_URL ||
-      process.env.AZURE_ENDPOINT ||
-      process.env.AZURE_OPENAI_ENDPOINT ||
-      process.env.MISTRAL_BASE_URL ||
-      "https://api.mistral.ai/v1",
-    ocrModel: process.env.AZURE_OCR_MODEL || process.env.MISTRAL_OCR_MODEL || "mistral-document-ai-2512"
+    apiKey: required("MISTRAL_API_KEY"),
+    ocrEndpoint: process.env.MISTRAL_OCR_ENDPOINT || "https://api.mistral.ai/v1/ocr",
+    documentModel: process.env.MISTRAL_DOCUMENT_MODEL || "mistral-document-ai-2512"
   },
   topKMatches: Number(process.env.TOP_K_MATCHES || 5)
 };
@@ -67,6 +60,3 @@ if (!config.azure.apiKey) {
   throw new Error("Variavel obrigatoria ausente: AZURE_API_KEY (ou AZURE_OPENAI_API_KEY)");
 }
 
-if (!config.mistral.apiKey) {
-  throw new Error("Variavel obrigatoria ausente: AZURE_API_KEY (ou AZURE_OPENAI_API_KEY ou MISTRAL_API_KEY)");
-}

@@ -1,23 +1,5 @@
 import { config } from "./config.js";
 
-function buildOcrUrl() {
-  const base = String(config.mistral.baseUrl || "").replace(/\/+$/, "");
-  const endpoint = `${base}/ocr`;
-
-  const isAzureEndpoint = /azure\.com|azure\.ai/i.test(base);
-  if (!isAzureEndpoint) {
-    return endpoint;
-  }
-
-  const apiVersion = String(config.mistral.apiVersion || "").trim();
-  if (!apiVersion) {
-    return endpoint;
-  }
-
-  const separator = endpoint.includes("?") ? "&" : "?";
-  return `${endpoint}${separator}api-version=${encodeURIComponent(apiVersion)}`;
-}
-
 function getMimeType(fileName) {
   const lower = fileName.toLowerCase();
   if (lower.endsWith(".pdf")) return "application/pdf";
@@ -31,15 +13,9 @@ function getMimeType(fileName) {
 
 export async function runOcr({ buffer, originalName }) {
   const dataUrl = `data:${getMimeType(originalName)};base64,${buffer.toString("base64")}`;
-  const url = buildOcrUrl();
-
-  const authHeaders =
-    String(config.mistral.authMode).toLowerCase() === "api-key"
-      ? { "api-key": config.mistral.apiKey }
-      : { Authorization: `Bearer ${config.mistral.apiKey}` };
 
   const payload = {
-    model: config.mistral.ocrModel,
+    model: config.mistral.documentModel,
     document: {
       type: "document_url",
       document_url: dataUrl
@@ -47,11 +23,11 @@ export async function runOcr({ buffer, originalName }) {
     include_image_base64: false
   };
 
-  const response = await fetch(url, {
+  const response = await fetch(config.mistral.ocrEndpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...authHeaders
+      Authorization: `Bearer ${config.mistral.apiKey}`
     },
     body: JSON.stringify(payload)
   });
