@@ -47,6 +47,7 @@ export const config = {
   mistral: {
     apiKey: process.env.MISTRAL_API_KEY || process.env.AZURE_API_KEY || process.env.AZURE_OPENAI_API_KEY,
     authMode: process.env.AZURE_OCR_AUTH_MODE || process.env.MISTRAL_AUTH_MODE || "bearer",
+    apiVersion: process.env.AZURE_OCR_API_VERSION || process.env.AZURE_OPENAI_API_VERSION || "2024-12-01-preview",
     baseUrl:
       process.env.AZURE_OCR_BASE_URL ||
       process.env.AZURE_ENDPOINT ||

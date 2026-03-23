@@ -1,5 +1,23 @@
 import { config } from "./config.js";
 
+function buildOcrUrl() {
+  const base = String(config.mistral.baseUrl || "").replace(/\/+$/, "");
+  const endpoint = `${base}/ocr`;
+
+  const isAzureEndpoint = /azure\.com|azure\.ai/i.test(base);
+  if (!isAzureEndpoint) {
+    return endpoint;
+  }
+
+  const apiVersion = String(config.mistral.apiVersion || "").trim();
+  if (!apiVersion) {
+    return endpoint;
+  }
+
+  const separator = endpoint.includes("?") ? "&" : "?";
+  return `${endpoint}${separator}api-version=${encodeURIComponent(apiVersion)}`;
+}
+
 function getMimeType(fileName) {
   const lower = fileName.toLowerCase();
   if (lower.endsWith(".pdf")) return "application/pdf";
@@ -13,7 +31,7 @@ function getMimeType(fileName) {
 
 export async function runOcr({ buffer, originalName }) {
   const dataUrl = `data:${getMimeType(originalName)};base64,${buffer.toString("base64")}`;
-  const url = `${config.mistral.baseUrl}/ocr`;
+  const url = buildOcrUrl();
 
   const authHeaders =
     String(config.mistral.authMode).toLowerCase() === "api-key"

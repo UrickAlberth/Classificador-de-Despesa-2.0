@@ -33,6 +33,7 @@ npm install
 AZURE_ENDPOINT=https://SEU-RECURSO.azure.com
 AZURE_OCR_AUTH_MODE=api-key
 AZURE_OCR_MODEL=mistral-document-ai-2512
+AZURE_OCR_API_VERSION=2024-12-01-preview
 # MISTRAL_API_KEY opcional: se nao informar, usa AZURE_API_KEY
 # AZURE_OCR_BASE_URL opcional: se nao informar, usa AZURE_ENDPOINT
 ```
